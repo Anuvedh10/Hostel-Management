@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.database import Base, engine
+from app.database import Base, engine, SessionLocal
+from app.models import User
 from app.routes import auth, students, rooms, fees, dashboard
 
 # Create tables on startup (fine for SQLite dev use; for PostgreSQL in
@@ -16,6 +17,25 @@ app = FastAPI(
     description="Core module: authentication, students, rooms, fees, dashboards.",
     version="1.0.0",
 )
+
+
+@app.on_event("startup")
+def auto_seed_if_empty():
+    """
+    Populate demo accounts/data automatically on first boot against an empty
+    database (e.g. a freshly created hosted Postgres instance where there's
+    no shell access to run `python -m app.seed` manually, such as Render's
+    free tier). Safe to run on every startup: it's a no-op once any user
+    already exists.
+    """
+    db = SessionLocal()
+    try:
+        if db.query(User).count() == 0:
+            from app.seed import run as seed_run
+            seed_run()
+    finally:
+        db.close()
+
 
 app.add_middleware(
     CORSMiddleware,
