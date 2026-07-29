@@ -5,7 +5,7 @@ is immediately usable after setup.
 Run standalone with:  python -m app.seed
 Also called automatically from app/main.py on startup if the database
 has no users yet (e.g. first boot on a freshly hosted Postgres instance
-with no shell access to run this manually).
+with no shell access to run this manually). 
 """
 from datetime import date, timedelta
 
